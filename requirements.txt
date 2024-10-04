@@ -1,0 +1,2 @@
+playwright==1.47.0
+curl_cffi==0.7.2
