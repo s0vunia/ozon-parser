@@ -9,7 +9,7 @@ import asyncio
 import json
 from typing import List, Optional, Dict, Any
 from playwright.async_api import async_playwright, Page, Playwright, Browser, BrowserContext, ElementHandle
-from curl_cffi import requests
+from curl_cffi.requests import AsyncSession
 
 # Constants
 URL_BASE = "https://www.ozon.ru"
@@ -69,6 +69,7 @@ class OzonScraper:
         self.context = await self.browser.new_context()
         self.page = await self.context.new_page()
         await self.page.set_viewport_size({"width": VIEWPORT_WIDTH, "height": VIEWPORT_HEIGHT})
+        self.session = AsyncSession()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
@@ -76,6 +77,8 @@ class OzonScraper:
 
     async def close(self) -> None:
         """Close all open resources."""
+        if self.session:
+            await self.session.close()
         if self.page:
             await self.page.close()
         if self.context:
@@ -91,12 +94,10 @@ class OzonScraper:
             await self.page.evaluate(f'window.scrollBy(0, {SCROLL_STEP})')
             await self.page.wait_for_timeout(SCROLL_DELAY)
 
-    def _get_product_info(self, product_url: str) -> ProductInfo:
-        """Fetch and parse product information from the API."""
+    async def _get_product_info(self, product_url: str) -> ProductInfo:
         try:
-            session = requests.Session()
-            raw_data = session.get(URL_API + product_url)
-            json_data: Dict[str, Any] = json.loads(raw_data.content.decode())
+            raw_data = await self.session.get(URL_API + product_url)
+            json_data: Dict[str, Any] = json.loads(raw_data.content)
 
             full_name = json_data["seo"]["title"]
             if json_data["layout"][0]["component"] == ADULT_CONTENT_MARKER:
@@ -135,7 +136,7 @@ class OzonScraper:
             price_with_card_element = await card.query_selector(CARD_PRICE_SELECTOR)
             price_with_card = await price_with_card_element.inner_text() if price_with_card_element else None
 
-            product_info = self._get_product_info(card_url)
+            product_info = await self._get_product_info(card_url)
             product_info.price_with_card = price_with_card
             return product_info
         except Exception as e:
