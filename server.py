@@ -88,7 +88,7 @@ async def search(request: SearchRequest):
                 short_name=card.short_name,
                 full_name=card.full_name,
                 description=card.description,
-                url=card.url,
+                url=f"https://ozon.ru/product/{card.product_id}",
                 price=card.price,
                 price_with_card=card.price_with_card,
                 image_url=card.image_url
