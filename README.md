@@ -82,8 +82,8 @@ curl -X POST "http://localhost:8000/search" \
       "full_name": "Мыло детское с экстрактом ромашки",
       "description": "Нежное мыло для чувствительной кожи",
       "url": "https://www.ozon.ru/product/123456",
-      "price": "50 руб.",
-      "price_with_card": "45 руб.",
+      "price": "50 RUB",
+      "price_with_card": "45 ₽",
       "image_url": "https://cdn1.ozone.ru/s3/multimedia-3/123456.jpg"
     },
     // Дополнительные результаты...
